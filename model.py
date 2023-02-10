@@ -2,32 +2,40 @@ import torch
 import math
 import torch.nn as nn
 
+
 class InputEmbeddings(nn.Module):
-    def __init__(self, d_model:int, vocab_size: int):
+
+    def __init__(self, d_model: int, vocab_size: int):
         super().__init__()
         self.d_model = d_model
         self.vocab_size = vocab_size
-        self.embedding = nn.Embedding(vocab_size,d_model) 
+        self.embedding = nn.Embedding(vocab_size, d_model)
+
     def forward(self, x):
         return self.embedding(x) * math.sqrt(self.d_model)
-class PositionalEmbedding(nn.Model):
-    def __init__(self, d_model:int, seq_len: int, dropout: float)->None:
+
+
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, dim_model: int, seq_len: int, dropout: float) -> None:
         super().__init__()
-        self.d_model = d_model
+        self.dim_model = dim_model
         self.seq_len = seq_len
         self.dropout = nn.Dropout(dropout)
 
-        pe = torch.zeros(seq_len, d_model)
-        position = torch.arange(0, seq_len,dtype=torch.float).unsqueeze(1)
+        positional_encoding = torch.zeros(seq_len, dim_model)
+        position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)
 
-        div_term =torch.exp(torch.arange(0,d_model,2).float()*(-math.log(10000)/d_model))
-        pe[:,0::2] = torch.sin(position*div_term)
-        pe[:,0::2] = torch.sin(position*div_term)
+        div_term = torch.exp(torch.arange(0, dim_model, 2).
+                             float()*(-math.log(10000) / dim_model))
+        positional_encoding[:, 0::2] = torch.sin(position*div_term)
+        positional_encoding[:, 0::2] = torch.sin(position*div_term)
 
-        pe = pe.unsqueeze(0)
+        positional_encoding = positional_encoding.unsqueeze(0)
 
-        self.register_buffer("pe", pe)
+        self.register_buffer("positional_encoding", positional_encoding)
 
     def forward(self, x):
-        x=x+(self.pe[:,:x.shape[1], :]).requires_grad_(False)
+        x = x+(self.
+               positional_encoding[:, :x.shape[1], :]).requires_grad_(False)
         return self.dropout(x)
